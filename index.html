@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#153a30">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="Split roommate bills fairly across move-ins, move-outs and absences. Account for fixed charges, see each day, and settle up. Free, local-first and no signup.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Dayfair — Every day counted. Every cent accounted for.">
+  <meta property="og:description" content="An explainable utility bill splitter for changing households. Nothing uploaded, no account, no subscriptions.">
+  <meta property="og:site_name" content="Dayfair">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:image" content="assets/og-preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Dayfair — a day-by-day roommate bill splitter">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Dayfair — Split roommate bills fairly">
+  <meta name="twitter:description" content="Split utility bills by actual days at home, account for fixed charges, and settle up. Free and private.">
+  <meta name="twitter:image" content="assets/og-preview.png">
+  <!-- DAYFAIR_DEPLOY_METADATA -->
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+  <title>Dayfair — Split shared bills by days, not guesswork</title>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#workspace">Skip to calculator</a>
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Dayfair home"><span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span><span>dayfair<span class="brand-period">.</span></span></a>
+    <nav aria-label="Main navigation"><a class="active" href="#workspace">Calculator</a><a href="#method">The method</a><a href="privacy.html">Privacy</a></nav>
+    <div class="top-controls"><span class="privacy-dot"><span aria-hidden="true">●</span> No uploads</span><button id="themeToggle" class="icon-button" type="button" aria-label="Switch color theme" title="Switch color theme"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20.5 14a8.5 8.5 0 1 1-10.5-10.5A7 7 0 0 0 20.5 14Z"/></svg></button></div>
+  </header>
+  <main>
+    <section class="intro" aria-labelledby="hero-title">
+      <div class="intro-copy"><p class="eyebrow"><span class="eyebrow-line"></span> THE HOUSEHOLD LEDGER</p><h1 id="hero-title">Same house.<br><em>Different days.</em><br>Fair split.</h1><p class="lead">Move-ins, move-outs, time away. Split the real bills by who's there, separate the fixed fees, and see exactly who owes whom.</p><div class="intro-chips"><span>Multiple billing cycles</span><span>Exact to the cent</span><span>100% in your browser</span></div></div>
+      <div class="hero-illustration" aria-hidden="true"><div class="illustration-head">SEPTEMBER / A HOUSE IN MOTION</div><div class="ill-grid"><div class="ill-label">01 — 10</div><div class="ill-bars"><i class="ill-alex"></i><i class="ill-sam"></i></div><div class="ill-label">11 — 15</div><div class="ill-bars"><i class="ill-alex"></i></div><div class="ill-label">16 — 17</div><div class="ill-bars"><i class="ill-alex"></i><i class="ill-jo"></i></div><div class="ill-label">18 — 30</div><div class="ill-bars"><i class="ill-alex"></i><i class="ill-sam"></i><i class="ill-jo"></i></div></div><div class="ill-legend"><span><i class="sq a"></i>Alex</span><span><i class="sq s"></i>Sam</span><span><i class="sq j"></i>Jo</span></div><div class="ill-footer">Not all days look the same. <span>↗</span></div></div>
+    </section>
+    <section id="workspace" class="workspace" aria-labelledby="workspace-title">
+      <div class="workspace-header"><div><p class="eyebrow">YOUR WORKSPACE <span class="muted">/ live calculator</span></p><h2 id="workspace-title">Make the split make sense.</h2><p id="quickTotal" class="quick-total" aria-live="off">Edit the dates to see your split update.</p></div><div class="workspace-actions"><span id="saveStatus" class="save-status" role="status">Saved on this device</span><button class="button subtle" id="exampleBtn" type="button">Load example</button><button class="button subtle" id="blankBtn" type="button">Start fresh</button></div></div>
+      <div class="app-layout">
+        <div class="editor-stack">
+          <section class="editor-section" aria-labelledby="membersHeading"><div class="section-head"><div class="section-number">01</div><div><h3 id="membersHeading">Who's in the house?</h3><p>Add residents, their dates, and any days away. Leave the last day empty for an ongoing stay.</p></div><button type="button" class="add-button" data-action="add-person"><span aria-hidden="true">＋</span> Add person</button></div><div id="membersList" class="entry-list"></div></section>
+          <section class="editor-section" aria-labelledby="billsHeading"><div class="section-head"><div class="section-number">02</div><div><h3 id="billsHeading">What needs splitting?</h3><p>Add each bill exactly as it appears, even with different date ranges.</p></div><button type="button" class="add-button" data-action="add-bill"><span aria-hidden="true">＋</span> Add bill</button></div><div id="billsList" class="entry-list"></div><p class="section-hint"><strong>Fixed charges</strong> are service fees that continue even when someone is away. Usage charges are the remainder of the bill.</p></section>
+        </div>
+        <aside class="results-panel" aria-labelledby="resultsHeading"><div class="results-inner"><div class="results-top"><div><p class="eyebrow">03 / THE BREAKDOWN</p><h3 id="resultsHeading">The numbers, settled.</h3></div><label class="currency-control">Currency <select id="currencyInput" aria-label="Currency"><option value="USD">USD $</option><option value="EUR">EUR €</option><option value="GBP">GBP £</option><option value="CAD">CAD $</option><option value="AUD">AUD $</option></select></label></div><div id="resultArea"></div><div id="printReport" class="print-report" aria-hidden="true"></div><div class="result-actions"><button id="csvBtn" type="button" class="button strong">↓ Download report</button><button id="copyBtn" type="button" class="button outlined">Copy summary</button><button id="printBtn" type="button" class="button outlined">Print / PDF</button></div><p class="result-fineprint">Your numbers stay on this device. These are agreed-upon estimates, not exact metered usage or legal advice.</p></div></aside>
+      </div>
+      <div class="data-toolbar"><div><strong>Keep a copy of your work</strong><span>Your entries auto-save locally. Export a backup to move devices or avoid losing work.</span></div><div class="toolbar-buttons"><button id="backupBtn" type="button" class="button subtle">↓ Save backup</button><button id="importBtn" type="button" class="button subtle">↑ Restore backup</button><input id="importInput" type="file" accept=".json,application/json" hidden><button id="clearBtn" type="button" class="button danger">Delete saved data</button></div></div>
+    </section>
+    <section class="method" id="method" aria-labelledby="methodHeading"><div class="method-label"><p class="eyebrow">THE LOGIC BEHIND IT</p><h2 id="methodHeading">Fairness you<br>can <em>show your work</em> on.</h2></div><div class="method-steps"><article><div class="method-num">01 — EVERY DAY</div><h3>Divide usage daily.</h3><p>The usage portion is spread evenly over the days in the bill. Each day's share is divided among residents marked present that day.</p></article><article><div class="method-num">02 — FIXED IS DIFFERENT</div><h3>Choose who carries the basics.</h3><p>Divide connection fees equally between contracted residents, or prorate those fees by the days each person resided in the home.</p></article><article><div class="method-num">03 — SETTLE ONCE</div><h3>One clear net balance.</h3><p>Every bill and payer rolls into a single balance per person, then into the payments needed to make everyone whole. We assign every last cent.</p></article></div></section>
+  </main>
+  <footer class="footer"><div><span class="footer-brand">dayfair.</span><p>A little less arithmetic. A lot more clarity.</p></div><div><a href="privacy.html">Privacy & data</a><a href="https://docs.github.com/en/pages" rel="noopener noreferrer" target="_blank">About GitHub Pages</a><span>Made to be self-hosted.</span></div></footer>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
