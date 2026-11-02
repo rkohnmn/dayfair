@@ -54,7 +54,7 @@ def main():
         fixed.fill('30')
         assert page.locator('#csvBtn').is_enabled()
         with page.expect_download() as pending:
-            page.get_by_role('button', name='Download report').click()
+            page.get_by_role('button', name='Export settlement CSV').click()
         assert pending.value.suggested_filename == 'dayfair-reconciliation.csv'
         page.evaluate('window.__printed = false; window.print = () => { window.__printed = true; }')
         page.get_by_role('button',name='Print / PDF').click()

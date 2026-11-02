@@ -150,7 +150,7 @@ function attach() {
     data=emptyData();selectedBill=null;renderEditors();renderResults();
     $('saveStatus').textContent='Saved household deleted (starter shown)';notify('Saved household deleted. Starter inputs are not saved until edited.');
   });
-  $('csvBtn').addEventListener('click',()=>outcome&&download('dayfair-reconciliation.csv',makeCSV(outcome,data.currency),'text/csv;charset=utf-8'));
+  $('csvBtn').addEventListener('click',exportSettlementCsv);
   $('copyBtn').addEventListener('click',async()=>{
     if(!outcome)return;
     try { await navigator.clipboard.writeText(makeSummary(outcome,data.currency));notify('Summary copied to clipboard.'); }
@@ -180,6 +180,11 @@ function setTheme(theme) {
   $('themeToggle').setAttribute('aria-label',`Switch to ${theme==='dark'?'light':'dark'} theme`);
   $('themeToggle').title=`Switch to ${theme==='dark'?'light':'dark'} theme`;
 }
+function exportSettlementCsv() {
+  if (!outcome) return;
+  download('dayfair-reconciliation.csv',makeCSV(outcome,data.currency),'text/csv;charset=utf-8');
+}
+
 function download(filename,content,type){const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=filename;document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);}
 function refresh(){save();renderEditors();renderResults();}
 try { setTheme(localStorage.getItem(THEME)==='dark'?'dark':'light'); } catch {setTheme('light');}
