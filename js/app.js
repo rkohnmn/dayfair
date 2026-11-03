@@ -12,6 +12,7 @@ let data = loadState();
 let outcome = null;
 let selectedBill = null;
 let toastTimer = 0;
+let replacingEditors = false;
 function loadState() {
   try {
     const text = localStorage.getItem(STORAGE);
@@ -35,11 +36,14 @@ function field({label,name,value,type='text',placeholder='',min,max,step,options
   return `<div class="field"><label>${esc(label)}${control}</label></div>`;
 }
 function renderEditors() {
+  replacingEditors = true;
+  try {
   $('membersList').innerHTML=data.people.map((p,i)=>`<div class="entry" data-kind="person" data-id="${esc(p.id)}"><div class="entry-title"><b><span class="color-index" aria-hidden="true"></span>Resident ${i+1}</b><button class="ghost-button" type="button" data-action="remove-person" aria-label="Remove ${esc(p.name)}">Remove</button></div><div class="field-grid">${field({label:'Name',name:'name',value:p.name,placeholder:'e.g. Alex'})}${field({label:'First day here',name:'from',value:p.from,type:'date'})}${field({label:'Last day here',name:'to',value:p.to,type:'date'})}</div><div class="subentry"><div class="subentry-head"><span>AWAY DAYS <span style="font-weight:400">(optional)</span></span><span style="font-weight:400;color:var(--mute)">Both dates included</span></div>${(p.absences||[]).map((a,j)=>`<div class="absence-grid" data-absence="${j}">${field({label:'Away from',name:'from',value:a.from,type:'date'})}${field({label:'Through',name:'to',value:a.to,type:'date'})}<button type="button" class="ghost-button" data-action="remove-absence">Remove</button></div>`).join('')}${p.absences?.length>=16?'':`<button type="button" class="inline-add" data-action="add-absence">+ Add time away</button>`}</div></div>`).join('') || '<div class="empty-state">Add a resident to begin.</div>';
   $('billsList').innerHTML=data.bills.map((b,i)=>`<div class="entry" data-kind="bill" data-id="${esc(b.id)}"><div class="entry-title"><b><span class="color-index" aria-hidden="true"></span>Bill ${i+1}</b><button class="ghost-button" type="button" data-action="remove-bill" aria-label="Remove ${esc(b.name)}">Remove</button></div><div class="field-grid bill-grid">${field({label:'Bill name',name:'name',value:b.name,placeholder:'e.g. Electricity'})}${field({label:'Total billed',name:'amount',value:b.amount,type:'number',min:0,max:99999999.99,step:'.01'})}${field({label:'Period starts',name:'from',value:b.from,type:'date'})}${field({label:'Period ends',name:'to',value:b.to,type:'date'})}${field({label:'Fixed service charge',name:'fixed',value:b.fixed,type:'number',min:0,max:99999999.99,step:'.01'})}${field({label:'Paid by',name:'payerId',value:b.payerId,options:data.people.map(p=>({label:p.name||'Unnamed',value:p.id}))})}${field({label:'How to divide fixed fees?',name:'fixedRule',value:b.fixedRule,options:[{value:'equal',label:'Equal / residents in period'},{value:'days',label:'By residence days'}]})}</div></div>`).join('') || '<div class="empty-state">Add a bill to calculate shares.</div>';
   $('currencyInput').value=data.currency;
   document.querySelector('[data-action="add-person"]').disabled=data.people.length>=MAX_PEOPLE;
   document.querySelector('[data-action="add-bill"]').disabled=data.bills.length>=MAX_BILLS;
+  } finally { replacingEditors = false; }
 }
 function renderResults() {
   const root=$('resultArea');
@@ -79,6 +83,9 @@ function renderPrintReport() {
   $('printReport').innerHTML=`<h1>Dayfair. A household settlement statement</h1><p>Calculated in your browser · ${outcome.entries.length} bills · ${outcome.members.length} residents · Total ${esc(money(outcome.total))}</p><h2>Bill-by-bill shares</h2><table><thead><tr><th>Bill</th><th>Inclusive period</th><th>Resident</th><th>Usage</th><th>Fixed</th><th>Owed</th></tr></thead><tbody>${billRows}</tbody></table><h2>What everyone paid</h2><table><thead><tr><th>Resident</th><th>Paid</th><th>Owed</th><th>Net</th></tr></thead><tbody>${outcome.balances.map(p=>`<tr><td>${esc(p.name)}</td><td>${esc(money(p.paid))}</td><td>${esc(money(p.due))}</td><td>${esc(money(p.net))}</td></tr>`).join('')}</tbody></table><h2>Settle up</h2>${outcome.transfers.length?`<table><thead><tr><th>From</th><th>To</th><th>Amount</th></tr></thead><tbody>${outcome.transfers.map(t=>`<tr><td>${esc(t.fromName)}</td><td>${esc(t.toName)}</td><td>${esc(money(t.cents))}</td></tr>`).join('')}</tbody></table>`:'<p>Everyone is square. No payments needed.</p>'}<h2>Allocation rules</h2>${outcome.entries.map(b=>`<p><strong>${esc(b.name)}:</strong> ${esc(money(b.amount))} total. ${esc(money(b.fixed))} fixed charge split ${b.fixedRule==='equal'?'equally among residents with dates in this billing period':'by residence days'}. ${esc(money(b.variable))} usage split day by day among present residents. Paid by ${esc(outcome.members.find(p=>p.id===b.payerId)?.name||'')}.</p>`).join('')}<p>These are modelled shares, not meter readings or a legal determination. Dates are inclusive. Charges are reconciled in integer cents.</p>`;
 }
 function updateStateFromField(target) {
+  // Replacing a focused input can fire its pending change event. It belongs
+  // to the old form and must not overwrite a restored household.
+  if(replacingEditors)return;
   const container=target.closest('[data-kind]');
   if(!container)return;
   const list=container.dataset.kind==='person'?data.people:data.bills;

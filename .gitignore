@@ -15,3 +15,7 @@ Thumbs.db
 !.env.example
 .vscode/
 .idea/
+
+# Browser regression artifacts
+test-results/
+__pycache__/
