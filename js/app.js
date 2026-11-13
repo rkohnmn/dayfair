@@ -1,4 +1,4 @@
-import {reconcile,formatMoney,validateBackup,MAX_PEOPLE,MAX_BILLS} from './engine.js';
+import {reconcile,formatMoney,validateBackup,isEditableHouseholdState,MAX_PEOPLE,MAX_BILLS} from './engine.js';
 import {exampleData,emptyData} from './sample.js';
 import {makeCSV,makeSummary} from './export.js';
 
@@ -18,7 +18,7 @@ function loadState() {
     const text = localStorage.getItem(STORAGE);
     if (text && text.length < 400000) {
       const found = JSON.parse(text);
-      if (found && ['USD','EUR','GBP','CAD','AUD'].includes(found.currency) && Array.isArray(found.people) && Array.isArray(found.bills) && found.people.length <= MAX_PEOPLE && found.bills.length <= MAX_BILLS) { loadedFromStorage = true; return found; }
+      if (isEditableHouseholdState(found)) { loadedFromStorage = true; return found; }
     }
   } catch { /* Storage may be disabled; use the example */ }
   return exampleData();
