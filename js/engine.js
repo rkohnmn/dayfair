@@ -7,7 +7,11 @@ const DAY_MS = 86400000;
 export function dayNumber(value) {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new Error('Enter a valid date (YYYY-MM-DD).');
   const [year, month, day] = value.split('-').map(Number);
-  const ms = Date.UTC(year, month - 1, day);
+  // Date.UTC(0..99, ...) silently maps those years to 1900..1999.
+  const calendar = new Date(0);
+  calendar.setUTCFullYear(year, month - 1, day);
+  calendar.setUTCHours(0, 0, 0, 0);
+  const ms = calendar.getTime();
   const actual = new Date(ms);
   if (actual.getUTCFullYear() !== year || actual.getUTCMonth() + 1 !== month || actual.getUTCDate() !== day)
     throw new Error(`Invalid calendar date: ${value}.`);
@@ -32,8 +36,14 @@ export function apportion(cents, weights) {
   if (!Number.isSafeInteger(cents) || cents < 0) throw new Error('Amount must be non-negative integer cents.');
   if (!Array.isArray(weights) || !weights.length || weights.some(w => !Number.isFinite(w) || w < 0)) throw new Error('Invalid sharing weights.');
   const sum = weights.reduce((a,b)=>a+b, 0);
+  if (!Number.isFinite(sum)) throw new Error('Sharing weights overflowed.');
   if (sum <= 0) { if (cents === 0) return weights.map(()=>0); throw new Error('A bill has nobody eligible to share it.'); }
-  const parts = weights.map(w => cents * w / sum);
+  // Retain original rounding for ordinary weights; avoid overflow only when needed.
+  const parts = weights.map(w => {
+    const product = cents * w;
+    return Number.isFinite(product) ? product / sum : cents * (w / sum);
+  });
+  if (parts.some(p => !Number.isFinite(p))) throw new Error('Invalid computed sharing share.');
   const result = parts.map(Math.floor);
   let remaining = cents - result.reduce((a,b)=>a+b, 0);
   const order = parts.map((p,i)=>({i, fraction:p-result[i]})).sort((a,b) => b.fraction-a.fraction || a.i-b.i);
@@ -133,6 +143,34 @@ export function reconcile(people, bills) {
     if (!debtors[di].left) di++;
   }
   return {entries,balances,transfers,total:entries.reduce((sum,b)=>sum+b.amount,0),members:members.map(({id,name})=>({id,name}))};
+}
+
+/**
+ * Structural validation for a saved *draft* household. Unlike backup import,
+ * drafts may contain temporarily incomplete dates, names, or amounts while edited.
+ * This function protects the rendering path from malformed persisted object shapes.
+ */
+export function isEditableHouseholdState(state) {
+  const record = v => v !== null && typeof v === 'object' && !Array.isArray(v);
+  const text = v => typeof v === 'string' && v.length <= 4000;
+  if (!record(state) || !['USD','EUR','GBP','CAD','AUD'].includes(state.currency) ||
+      !Array.isArray(state.people) || state.people.length < 1 || state.people.length > MAX_PEOPLE ||
+      !Array.isArray(state.bills) || state.bills.length < 1 || state.bills.length > MAX_BILLS) return false;
+  const ids = new Set();
+  for (const p of state.people) {
+    if (!record(p) || !text(p.id) || !p.id || ids.has(p.id) || !text(p.name) ||
+        !text(p.from) || !text(p.to) || !Array.isArray(p.absences) || p.absences.length > 16 ||
+        !p.absences.every(a => record(a) && text(a.from) && text(a.to))) return false;
+    ids.add(p.id);
+  }
+  const billIds = new Set();
+  for (const b of state.bills) {
+    if (!record(b) || !text(b.id) || !b.id || billIds.has(b.id) || !text(b.name) ||
+        !text(b.from) || !text(b.to) || !text(b.amount) || !text(b.fixed) ||
+        !text(b.payerId) || !text(b.fixedRule)) return false;
+    billIds.add(b.id);
+  }
+  return true;
 }
 
 /** Strictly validate the imported backup contract; data is then revalidated by reconcile. */
